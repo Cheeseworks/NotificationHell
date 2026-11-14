@@ -4,6 +4,8 @@
 
 #include <rhatt/prelude.h>
 
+#include <rhatt/base/Singleton.hpp>
+
 // #include <horrible/OptionalAPI.hpp>
 
 #include <Geode/Geode.hpp>
@@ -18,10 +20,10 @@ static std::vector<std::weak_ptr<Hook>> NOTIF_HOOKS;  // Array of registered not
 static bool HORRIBLE_OPT_ENABLED = true;              // cuz geode event apis are acting gay...
 
 namespace cw {
-    static void showNotif(const Notif* notif, CCNode* to, CopyableFunction<void(NotifNode*)>&& finished) {
+    static void showNotif(const Notif* notif, CCNode* to, Function<void(NotifNode*)> finished) {
         auto const size = CCDirector::sharedDirector()->getWinSize();
 
-        auto x = size.width / 2.f;
+        auto x = size.width / 2.0f;
 
         auto notifNode = NotifNode::create(notif, false);
         notifNode->setScale(0.875f);
@@ -38,7 +40,7 @@ namespace cw {
                 CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, yDown })),
                 CCDelayTime::create(cw::rng::get(3.75f, 2.5f)),
                 CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, y })),
-                CallFuncExt::create([notifNode, finished = std::move(finished)]() {
+                CallFuncExt::create([notifNode, finished = std::move(finished)]() mutable {
                     notifNode->removeFromParent();
                     finished(notifNode);
                 }),
@@ -81,7 +83,7 @@ class $modify(NotifPlayLayer, PlayLayer) {
 
         if (Mod::get()->getSettingValue<bool>("challenge-mode")) {
             f->feed = NotifFeed::create(m_uiLayer->getScaledContentHeight());
-            f->feed->setPosition({ getScaledContentWidth(), getScaledContentHeight() / 2.f });
+            f->feed->setPosition({ m_uiLayer->getScaledContentWidth(), m_uiLayer->getScaledContentHeight() / 2.0f });
 
             m_uiLayer->addChild(f->feed, CW_HIGHEST_Z);
         };
@@ -140,19 +142,10 @@ class $modify(NotifPlayLayer, PlayLayer) {
 };
 
 // this is all probably a lot messier than it needs to be xdd
-#define AN_RUN_GLOBAL_ONCE CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(GlobalNotifDirector::showNewNotif), this, 0.f, 0, cw::rng::get(6.25f, 0.125f), false)
+#define NH_RUN_GLOBAL_ONCE CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(GlobalNotifDirector::showNewNotif), this, 0.0f, 0, cw::rng::get(6.25f, 0.125f), false)
 
-class GlobalNotifDirector final : public CCObject {
+class GlobalNotifDirector final : public cw::base::Singleton<GlobalNotifDirector>, public CCObject {
 protected:
-    GlobalNotifDirector() = default;
-    ~GlobalNotifDirector() = default;
-
-    GlobalNotifDirector(const GlobalNotifDirector&) = delete;
-    GlobalNotifDirector& operator=(const GlobalNotifDirector&) = delete;
-
-    GlobalNotifDirector(GlobalNotifDirector&&) = delete;
-    GlobalNotifDirector& operator=(GlobalNotifDirector&&) = delete;
-
     void showNewNotif(float) {
         auto notifRes = NotifManager::get()->getRandom();
         if (notifRes.isErr()) return;
@@ -164,18 +157,13 @@ protected:
 
     void cleanNotif(CCNode* sender) {
         cue::resetNode(sender);
-        if (HORRIBLE_OPT_ENABLED && Mod::get()->getSettingValue<bool>("always-on")) AN_RUN_GLOBAL_ONCE;
+        if (HORRIBLE_OPT_ENABLED && Mod::get()->getSettingValue<bool>("always-on")) NH_RUN_GLOBAL_ONCE;
     }
 
 public:
-    static GlobalNotifDirector& get() noexcept {
-        static GlobalNotifDirector inst;
-        return inst;
-    }
-
     void start() {
         log::info("Starting up global scheduler");  // extra horrible menu check :p
-        if (HORRIBLE_OPT_ENABLED) AN_RUN_GLOBAL_ONCE;
+        if (HORRIBLE_OPT_ENABLED) NH_RUN_GLOBAL_ONCE;
     }
 
     void stop() {
@@ -186,11 +174,13 @@ public:
 
 namespace cw {  // decl namespace again cuz we need to wait for gnd class decl apparently.....
     static void toggleGlobalNotifs(bool on) {
-        auto& gnd = GlobalNotifDirector::get();
+        auto gnd = GlobalNotifDirector::get();
 
-        on ? gnd.start() : gnd.stop();
+        on ? gnd->start() : gnd->stop();
 
+#ifdef CW_TESTING
         log::debug("Persistent notifications {}", on ? "ENABLED" : "DISBALED");
+#endif
     }
 };
 
@@ -198,7 +188,9 @@ $on_game(Loaded) {
     listenForSettingChanges<bool>(
         "always-on",
         [](bool on) {
+#ifdef CW_TESTING
             log::trace("{} persistent notifications", on ? "ENABLING" : "DISBALING");
+#endif
 
             if (auto pl = PlayLayer::get()) modify_cast<NotifPlayLayer*>(pl)->setupSchedules(!on);
             cw::toggleGlobalNotifs(on);
@@ -209,7 +201,7 @@ $on_game(Loaded) {
 
     // if (Loader::get()->isModLoaded("cubicstudios.horriblemenu")) {
     //     auto const opt = OptionV2{
-    //         AN_HORRIBLE_MENU_OPT_ID,
+    //         NH_HORRIBLE_MENU_OPT_ID,
     //         "Spam Notifications",
     //         "Enable the annoying notification spam during gameplay.",
     //         "Notification Hell",

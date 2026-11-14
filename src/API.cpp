@@ -22,13 +22,13 @@ ZStringView Sender::getIcon() const noexcept {
 }
 
 Sender Sender::create(std::string id, std::string name, std::string icon) {
-    return Sender(std::move(id), std::move(name), std::move(icon));
+    return Sender{ std::move(id), std::move(name), std::move(icon) };
 }
 
 Notif::Notif(std::string id) : m_id(std::move(id)) {}
 
 Notif Notif::create(std::string id) {
-    return Notif(std::move(id));
+    return Notif{ std::move(id) };
 }
 
 Notif& Notif::setTitle(std::string title) {
@@ -106,6 +106,6 @@ Result<const Notif*> NotifManager::getRandom() noexcept {
 }
 
 NotifManager* NotifManager::get() noexcept {
-    static auto inst = new (std::nothrow) NotifManager();
-    return inst;
+    static NotifManager inst;
+    return &inst;
 }

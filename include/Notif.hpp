@@ -14,8 +14,6 @@ namespace cw::notifs {
             bool isOk = false;
         };
 
-        using Callback = geode::Function<void(Notif const&, Button const&)>;
-
     private:
         std::string m_id;
         std::string m_title;

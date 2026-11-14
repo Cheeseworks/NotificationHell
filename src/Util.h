@@ -10,5 +10,5 @@
 
 #include <Geode/ui/Button.hpp>
 
-// #define AN_HORRIBLE_MENU_OPT_ID "enable"_spr
-// static constexpr auto HORRIBLE_MENU_OPT_ID = AN_HORRIBLE_MENU_OPT_ID;
+// #define NH_HORRIBLE_MENU_OPT_ID "enable"_spr
+// static constexpr auto HORRIBLE_MENU_OPT_ID = NH_HORRIBLE_MENU_OPT_ID;

@@ -14,21 +14,20 @@ using namespace cw::notifs;
 bool NotifNode::init(const Notif* notif, bool withBtns) {
     if (!CCNode::init()) return false;
 
-    setAnchorPoint({ 0.5, 0.5 });
-    setContentSize({ 255.f, withBtns ? 82.5f : 70.f });
+    setAnchorPoint({ 0.5f, 0.5f });
+    setContentSize({ 255.0f, withBtns ? 82.5f : 60.0f });
 
-    auto notifMsg = Label::create(notif->getMessage().c_str(), "chatFont.fnt");
+    auto notifMsg = Label::create(notif->getMessage(), "chatFont.fnt");
     notifMsg->setID("notif-msg");
     notifMsg->setScale(0.875f);
-    notifMsg->setMaxWidth(getScaledContentWidth() - 75.f);
-    notifMsg->setAnchorPoint({ 0, 1 });
-
-    addChild(notifMsg, 9);
+    notifMsg->setMaxWidth(getScaledContentWidth() - 75.0f);
+    notifMsg->setAnchorPoint({ 0.0f, 1.0f });
+    notifMsg->setZOrder(9);
 
     setContentHeight(getScaledContentHeight() + notifMsg->getScaledContentHeight());
 
     if (withBtns) {
-        m_maxTime = cw::rng::get(25.f, 12.5f);
+        m_maxTime = cw::rng::get(25.0f, 12.5f);
         m_time = m_maxTime;
 
         auto btnContainerLayout = RowLayout::create()
@@ -38,9 +37,8 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
 
         auto btnContainer = CCNode::create();
         btnContainer->setID("btn-container");
-        btnContainer->setAnchorPoint({ 0.5, 0 });
-        btnContainer->setContentSize({ getScaledContentWidth() * 0.925f, 50.f });
-        btnContainer->setPosition({ getScaledContentWidth() / 2.f, 20.f });
+        btnContainer->setAnchorPoint({ 0.5f, 0.0f });
+        btnContainer->setContentSize({ getScaledContentWidth() * 0.925f, 50.0f });
         btnContainer->setLayout(btnContainerLayout);
 
         std::vector<Notif::Button> btns;
@@ -66,15 +64,22 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
 
         setContentHeight(getScaledContentHeight() + btnContainer->getScaledContentHeight());
 
-        addChild(btnContainer);
+        addChildAtPosition(btnContainer, Anchor::Bottom, { 0.0f, 20.0f });
 
         m_countdown = ProgressBar::create();
         m_countdown->setID("countdown");
         m_countdown->setScale(0.75f);
-        m_countdown->setAnchorPoint({ 0.5, 0.5 });
-        m_countdown->setPosition({ getScaledContentWidth() / 2.f, 12.5f });
+        m_countdown->setAnchorPoint({ 0.5f, 0.5f });
+        m_countdown->setZOrder(1);
 
-        addChild(m_countdown, 1);
+        addChildAtPosition(m_countdown, Anchor::Bottom, { 0.0f, 12.5f });
+
+        m_countdown->updateProgress(0.0f, m_maxTime, EasingType::SineInOut, [this](auto, bool complete) {
+            if (complete) {
+                if (m_callback) m_callback(false);
+                return unscheduleUpdate();
+            };
+        });
 
         scheduleUpdate();
     };
@@ -84,7 +89,7 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
         {
             .opacity = 255,
             .sidePadding = 1.25f,
-            .verticalPadding = 0.f,
+            .verticalPadding = 0.0f,
             .texture = "GJ_square02.png",
             .zOrder = -1,
         }
@@ -93,45 +98,33 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
     auto notifTitle = Label::create(notif->getTitle().c_str(), "goldFont.fnt");
     notifTitle->setID("notif-title");
     notifTitle->setScale(0.5f);
-    notifTitle->setPosition({ getScaledContentWidth() / 2.f, getScaledContentHeight() - (notifTitle->getScaledContentHeight() * 0.875f) });
+    notifTitle->setZOrder(1);
 
-    addChild(notifTitle, 1);
+    addChildAtPosition(notifTitle, Anchor::Top, { 0.0f, -(notifTitle->getScaledContentHeight() * 0.925f) });
 
     auto senderIcon = CCSprite::createWithSpriteFrameName(notif->getSender().getIcon().c_str());
     senderIcon->setID("sender-icon");
-    senderIcon->setPosition({ 32.5f, getScaledContentHeight() - 50.f });
+    senderIcon->setZOrder(9);
 
     cue::rescaleToMatch(senderIcon, 42.5f);
 
-    addChild(senderIcon, 9);
+    addChildAtPosition(senderIcon, Anchor::TopLeft, { 32.5f, -50.0f });
 
     auto senderName = Label::create(notif->getSender().getName().c_str(), "bigFont.fnt");
     senderName->setID("sender-name");
     senderName->setScale(0.5f);
-    senderName->setAnchorPoint({ 0, 0.5 });
-    senderName->setPosition({ senderIcon->getPositionX() + (senderIcon->getScaledContentWidth() * 0.75f), senderIcon->getPositionY() + ((senderIcon->getScaledContentHeight() / 2.f) * 0.875f) });
+    senderName->setAnchorPoint({ 0.0f, 0.5f });
+    senderName->setZOrder(1);
 
-    addChild(senderName, 1);
+    addChildAtPosition(senderName, Anchor::TopLeft, { senderIcon->getPositionX() + (senderIcon->getScaledContentWidth() * 0.75f), -32.5f });
 
-    notifMsg->setPosition({ senderName->getPositionX(), senderName->getPositionY() - (senderName->getScaledContentHeight() * 0.75f) });
+    addChildAtPosition(notifMsg, Anchor::TopLeft, { senderName->getPositionX(), -40.0f });
 
     return true;
 }
 
 void NotifNode::update(float dt) {
-    m_time -= dt;
-
-    if (m_time <= 0.f) {
-        if (m_callback) m_callback(false);
-        return unscheduleUpdate();
-    };
-
-    auto pct = (m_time / m_maxTime) * 100.f;
-
-    if (m_countdown) {
-        m_countdown->updateProgress(pct);
-        m_countdown->setFillColor(cw::colors::fadeColor(pct));
-    };
+    if (m_countdown) m_countdown->setFillColor(cw::colors::fadeColor(m_countdown->getProgress()));
 }
 
 void NotifNode::setCallback(Callback&& callback) {

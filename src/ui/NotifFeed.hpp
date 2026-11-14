@@ -5,7 +5,7 @@
 #include <Geode/Geode.hpp>
 
 class NotifFeed final : public cocos2d::CCNode {
-    using Callback = geode::CopyableFunction<void(bool)>;
+    using Callback = geode::Function<void(bool)>;
 
 private:
     geode::ScrollLayer* m_list = nullptr;
@@ -25,7 +25,7 @@ protected:
 public:
     static NotifFeed* create(float height);
 
-    void addNotif(const cw::notifs::Notif* notif, Callback&& cb);
+    void addNotif(const cw::notifs::Notif* notif, Callback cb);
 
     void clearNotifs();
 };
