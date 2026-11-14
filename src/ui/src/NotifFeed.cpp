@@ -1,10 +1,12 @@
-#include "../NotifFeed.h"
+#include "../NotifFeed.hpp"
 
 #include <cue/Util.hpp>
 
-#include <Include.h>
+#include <Util.h>
 
-#include <ui/NotifNode.h>
+#include <rhatt/prelude.h>
+
+#include <ui/NotifNode.hpp>
 
 #include <Geode/Geode.hpp>
 
@@ -15,8 +17,8 @@ bool NotifFeed::init(float height) {
     if (!CCNode::init()) return false;
 
     setID("notif-feed"_spr);
-    setAnchorPoint({1, 0.5});
-    setContentSize({200.f, height});
+    setAnchorPoint({ 1, 0.5 });
+    setContentSize({ 200.f, height });
 
     // yea ik whatever man
     m_mainLayer = CCLayer::create();
@@ -34,20 +36,21 @@ bool NotifFeed::init(float height) {
             .verticalPadding = -2.5f,
             .texture = "GJ_square04.png",
             .zOrder = -1,
-        });
+        }
+    );
 
     auto label = Label::create("Notifications", "goldFont.fnt");
     label->setID("feed-label");
     label->setScale(0.5f);
-    label->setPosition({m_mainLayer->getScaledContentWidth() / 2.f, m_mainLayer->getScaledContentHeight() - 15.f});
+    label->setPosition({ m_mainLayer->getScaledContentWidth() / 2.f, m_mainLayer->getScaledContentHeight() - 15.f });
 
     m_mainLayer->addChild(label, 1);
 
-    m_list = ScrollLayer::create({m_mainLayer->getScaledContentWidth() - 25.f, height - 37.5f});
+    m_list = ScrollLayer::create({ m_mainLayer->getScaledContentWidth() - 25.f, height - 37.5f });
     m_list->setID("notif-list");
     m_list->ignoreAnchorPointForPosition(false);
-    m_list->setAnchorPoint({0.5, 0});
-    m_list->setPosition({m_mainLayer->getScaledContentWidth() / 2.f, 12.5f});
+    m_list->setAnchorPoint({ 0.5, 0 });
+    m_list->setPosition({ m_mainLayer->getScaledContentWidth() / 2.f, 12.5f });
 
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(5.f));
 
@@ -59,7 +62,8 @@ bool NotifFeed::init(float height) {
         m_list->getScaledContentSize(),
         {
             .id = "",
-        });
+        }
+    );
     listBg->setAnchorPoint(m_list->getAnchorPoint());
     listBg->setPosition(m_list->getPosition());
 
@@ -75,27 +79,31 @@ bool NotifFeed::init(float height) {
             runAction(
                 CCSequence::createWithTwoActions(
                     CCEaseSineOut::create(
-                        CCMoveBy::create(0.5f, {getScaledContentWidth() * (m_showing ? -1.f : 1.f), 0.f})),
+                        CCMoveBy::create(0.5f, { getScaledContentWidth() * (m_showing ? -1.f : 1.f), 0.f })
+                    ),
                     CallFuncExt::create([this]() {
                         if (!m_showing) m_mainLayer->setVisible(false);
-                    })));
+                    })
+                )
+            );
 
             if (auto spr = typeinfo_cast<CCSprite*>(sender->getDisplayNode())) spr->runAction(CCFadeTo::create(0.5f, m_showing ? 255 : 125));
-        });
+        }
+    );
     toggleBtn->setID("toggle-feed");
     toggleBtn->setScale(0.875f);
-    toggleBtn->setPosition({-1.f * (toggleBtn->getScaledContentWidth() * 0.625f), getScaledContentHeight() / 2.f});
+    toggleBtn->setPosition({ -1.f * (toggleBtn->getScaledContentWidth() * 0.625f), getScaledContentHeight() / 2.f });
 
     addChild(toggleBtn);
 
-    m_countLabelBg = CCSprite::createWithSpriteFrameName("geode.loader/updates-multiple.png");
+    m_countLabelBg = CCSprite::createWithSpriteFrameName("updates-multiple.png"_gode);
     m_countLabelBg->setScale(0.575f);
     m_countLabelBg->setPosition(toggleBtn->getPosition() + (toggleBtn->getScaledContentSize() * 0.475f));
     m_countLabelBg->setVisible(false);
 
     addChild(m_countLabelBg, 1);
 
-    m_countLabel = Label::create(utils::numToString(m_list->m_contentLayer->getChildrenCount()).c_str(), "geode.loader/mdFontB.fnt");
+    m_countLabel = Label::create(cw::str::fmtNum(m_list->m_contentLayer->getChildrenCount()), "mdFontB.fnt"_gode);
     m_countLabel->setID("notif-counter");
     m_countLabel->setPosition(m_countLabelBg->getPosition());
     m_countLabel->setVisible(false);
@@ -105,7 +113,7 @@ bool NotifFeed::init(float height) {
     addChild(m_countLabel, 9);
 
     return true;
-};
+}
 
 void NotifFeed::updateCountLabel() {
     auto count = m_list->m_contentLayer->getChildrenCount();
@@ -116,7 +124,7 @@ void NotifFeed::updateCountLabel() {
     };
 
     if (m_countLabelBg) m_countLabelBg->setVisible(count > 0);
-};
+}
 
 void NotifFeed::addNotif(const Notif* notif, Callback&& cb) {
     auto node = NotifNode::create(notif);
@@ -139,12 +147,12 @@ void NotifFeed::addNotif(const Notif* notif, Callback&& cb) {
     m_list->scrollToTop();
 
     updateCountLabel();
-};
+}
 
 void NotifFeed::clearNotifs() {
     m_list->m_contentLayer->removeAllChildren();
     updateCountLabel();
-};
+}
 
 NotifFeed* NotifFeed::create(float height) {
     auto ret = new NotifFeed();
@@ -155,4 +163,4 @@ NotifFeed* NotifFeed::create(float height) {
 
     delete ret;
     return nullptr;
-};
+}
