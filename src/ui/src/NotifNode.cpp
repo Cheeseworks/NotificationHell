@@ -11,7 +11,7 @@
 using namespace geode::prelude;
 using namespace cw::notifs;
 
-bool NotifNode::init(const Notif* notif, bool withBtns) {
+bool NotifNode::init(Notif const* notif, bool withBtns) {
     if (!CCNode::init()) return false;
 
     setAnchorPoint({ 0.5f, 0.5f });
@@ -133,7 +133,7 @@ void NotifNode::setCallback(Callback&& callback) {
     m_callback = std::move(callback);
 }
 
-NotifNode* NotifNode::create(const Notif* notif, bool withBtns) {
+NotifNode* NotifNode::create(Notif const* notif, bool withBtns) {
     auto ret = new NotifNode();
     if (ret->init(notif, withBtns)) {
         ret->autorelease();

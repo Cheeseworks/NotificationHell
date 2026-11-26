@@ -17,12 +17,12 @@ namespace cw::notifs::ui {
         float m_time = 0.0f;
 
     protected:
-        bool init(const cw::notifs::Notif* notif, bool withBtns);
+        bool init(cw::notifs::Notif const* notif, bool withBtns);
 
         void update(float dt);
 
     public:
-        static NotifNode* create(const cw::notifs::Notif* notif, bool withBtns = true);
+        static NotifNode* create(cw::notifs::Notif const* notif, bool withBtns = true);
 
         void setCallback(Callback&& callback);
     };

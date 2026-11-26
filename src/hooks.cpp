@@ -18,37 +18,70 @@ using namespace cw::notifs;
 static std::vector<std::weak_ptr<Hook>> NOTIF_HOOKS;  // Array of registered notifications hooks
 static bool HORRIBLE_OPT_ENABLED = true;              // cuz geode event apis are acting gay...
 
-namespace cw {
-    static void showNotif(const Notif* notif, CCNode* to, Function<void(NotifNode*)> finished) {
-        auto const size = CCDirector::sharedDirector()->getWinSize();
+namespace cw::notifs {
+    namespace hooks {
+        static void showNotif(const Notif* notif, CCNode* to, Function<void(NotifNode*)> finished) {
+            auto const size = CCDirector::sharedDirector()->getWinSize();
 
-        auto x = size.width / 2.0f;
+            auto x = size.width / 2.0f;
 
-        auto notifNode = NotifNode::create(notif, false);
-        notifNode->setScale(0.875f);
+            auto notifNode = NotifNode::create(notif, false);
+            notifNode->setScale(0.875f);
 
-        auto y = size.height + notifNode->getScaledContentHeight();
-        auto yDown = size.height - (0.625f * notifNode->getScaledContentHeight());
+            auto y = size.height + notifNode->getScaledContentHeight();
+            auto yDown = size.height - (0.625f * notifNode->getScaledContentHeight());
 
-        notifNode->setPosition({ x, y });
+            notifNode->setPosition({ x, y });
 
-        to->addChild(notifNode, CW_HIGHEST_Z);
+            to->addChild(notifNode, CW_HIGHEST_Z);
 
-        notifNode->runAction(
-            CCSequence::create(
-                CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, yDown })),
-                CCDelayTime::create(cw::rng::get(3.75f, 2.5f)),
-                CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, y })),
-                CallFuncExt::create([notifNode, finished = std::move(finished)]() mutable {
-                    notifNode->removeFromParent();
-                    finished(notifNode);
-                }),
-                nullptr
-            )
-        );
+            notifNode->runAction(
+                CCSequence::create(
+                    CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, yDown })),
+                    CCDelayTime::create(cw::rng::get(3.75f, 2.5f)),
+                    CCEaseExponentialOut::create(CCMoveTo::create(0.375f, { x, y })),
+                    CallFuncExt::create([notifNode, finished = std::move(finished)]() mutable {
+                        notifNode->removeFromParent();
+                        finished(notifNode);
+                    }),
+                    nullptr
+                )
+            );
 
-        cw::sfx::play("chest07.ogg");
-    }
+            cw::sfx::play("chest07.ogg");
+        }
+    };
+
+    // this is all probably a lot messier than it needs to be xdd
+#define NH_RUN_GLOBAL_ONCE CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(GlobalNotifDirector::showNewNotif), this, 0.0f, 0, cw::rng::get(6.25f, 0.125f), false)
+
+    class GlobalNotifDirector final : public cw::base::Singleton<GlobalNotifDirector>, public CCObject {
+    protected:
+        void showNewNotif(float) {
+            auto notifRes = NotifManager::get()->getRandom();
+            if (notifRes.isErr()) return;
+
+            auto notif = std::move(notifRes).unwrap();
+
+            hooks::showNotif(notif, OverlayManager::get(), [this](NotifNode* sender) { cleanNotif(sender); });
+        }
+
+        void cleanNotif(CCNode* sender) {
+            cue::resetNode(sender);
+            if (HORRIBLE_OPT_ENABLED && Mod::get()->getSettingValue<bool>("always-on")) NH_RUN_GLOBAL_ONCE;
+        }
+
+    public:
+        void start() {
+            log::info("Starting up global scheduler");  // extra horrible menu check :p
+            if (HORRIBLE_OPT_ENABLED) NH_RUN_GLOBAL_ONCE;
+        }
+
+        void stop() {
+            log::info("Stopping global scheduler");
+            CCDirector::sharedDirector()->getScheduler()->unscheduleAllForTarget(this);
+        }
+    };
 };
 
 class $modify(NotifPlayLayer, PlayLayer) {
@@ -119,7 +152,7 @@ class $modify(NotifPlayLayer, PlayLayer) {
 
         auto notif = std::move(notifRes).unwrap();
 
-        cw::showNotif(notif, m_uiLayer, [this](NotifNode* sender) { cleanNotif(sender); });
+        hooks::showNotif(notif, m_uiLayer, [this](NotifNode* sender) { cleanNotif(sender); });
 
         auto f = m_fields.self();
 
@@ -138,37 +171,6 @@ class $modify(NotifPlayLayer, PlayLayer) {
     void cleanNotif(CCNode* sender) {
         cue::resetNode(sender);
         scheduleOnce(schedule_selector(NotifPlayLayer::showNewNotif), cw::rng::get(6.25f, 0.125f));
-    }
-};
-
-// this is all probably a lot messier than it needs to be xdd
-#define NH_RUN_GLOBAL_ONCE CCDirector::sharedDirector()->getScheduler()->scheduleSelector(schedule_selector(GlobalNotifDirector::showNewNotif), this, 0.0f, 0, cw::rng::get(6.25f, 0.125f), false)
-
-class GlobalNotifDirector final : public cw::base::Singleton<GlobalNotifDirector>, public CCObject {
-protected:
-    void showNewNotif(float) {
-        auto notifRes = NotifManager::get()->getRandom();
-        if (notifRes.isErr()) return;
-
-        auto notif = std::move(notifRes).unwrap();
-
-        cw::showNotif(notif, OverlayManager::get(), [this](NotifNode* sender) { cleanNotif(sender); });
-    }
-
-    void cleanNotif(CCNode* sender) {
-        cue::resetNode(sender);
-        if (HORRIBLE_OPT_ENABLED && Mod::get()->getSettingValue<bool>("always-on")) NH_RUN_GLOBAL_ONCE;
-    }
-
-public:
-    void start() {
-        log::info("Starting up global scheduler");  // extra horrible menu check :p
-        if (HORRIBLE_OPT_ENABLED) NH_RUN_GLOBAL_ONCE;
-    }
-
-    void stop() {
-        log::info("Stopping global scheduler");
-        CCDirector::sharedDirector()->getScheduler()->unscheduleAllForTarget(this);
     }
 };
 
