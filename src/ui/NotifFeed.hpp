@@ -4,28 +4,30 @@
 
 #include <Geode/Geode.hpp>
 
-class NotifFeed final : public cocos2d::CCNode {
-    using Callback = geode::Function<void(bool)>;
+namespace cw::notifs::ui {
+    class NotifFeed final : public cocos2d::CCNode {
+        using Callback = geode::Function<void(bool)>;
 
-private:
-    geode::ScrollLayer* m_list = nullptr;
+    private:
+        geode::ScrollLayer* m_list = nullptr;
 
-    geode::Label* m_countLabel = nullptr;
-    cocos2d::CCSprite* m_countLabelBg = nullptr;
+        geode::Label* m_countLabel = nullptr;
+        cocos2d::CCSprite* m_countLabelBg = nullptr;
 
-    cocos2d::CCLayer* m_mainLayer = nullptr;
+        cocos2d::CCLayer* m_mainLayer = nullptr;
 
-    bool m_showing = true;
+        bool m_showing = true;
 
-protected:
-    bool init(float height);
+    protected:
+        bool init(float height);
 
-    void updateCountLabel();
+        void updateCountLabel();
 
-public:
-    static NotifFeed* create(float height);
+    public:
+        static NotifFeed* create(float height);
 
-    void addNotif(const cw::notifs::Notif* notif, Callback cb);
+        void addNotif(const cw::notifs::Notif* notif, Callback cb);
 
-    void clearNotifs();
+        void clearNotifs();
+    };
 };

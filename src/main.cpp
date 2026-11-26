@@ -1,8 +1,5 @@
 #include <cw.h>
 
-#include <Geode/Geode.hpp>
-
-using namespace geode::prelude;
 using namespace cw::notifs;
 
 // yeah big ass source file
@@ -309,7 +306,7 @@ $on_mod(Loaded) {
         nm->add(
             Notif::create("rejected_mod")
                 .setTitle("Geode")
-                .setMessage("Your mod was rejected for overuse of AI. Please do not submit \"TotallyAwesomeCryptoMiner\" again, just don't...")
+                .setMessage("Your mod was rejected for overuse of AI. Please do not submit \"Versus\" again, just don't...")
                 .setButtons(
                     {
                         { .text = "re-submit", .isOk = false },
@@ -324,7 +321,7 @@ $on_mod(Loaded) {
         nm->add(
             Notif::create("steam_scam")
                 .setTitle("Steam")
-                .setMessage("Is \"stupidsmelly_119\" your Steam account? I accidentally reported it.")
+                .setMessage("Is \"Boomlings\" your Steam account? I accidentally reported it.")
                 .setButtons(
                     {
                         { .text = "NO!", .isOk = true },

@@ -24,7 +24,7 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
     notifMsg->setAnchorPoint({ 0.0f, 1.0f });
     notifMsg->setZOrder(9);
 
-    setContentHeight(getScaledContentHeight() + notifMsg->getScaledContentHeight());
+    setContentHeight(std::max(getContentHeight() + notifMsg->getScaledContentHeight(), withBtns ? 90.0f : 75.0f));
 
     if (withBtns) {
         m_maxTime = cw::rng::get(25.0f, 12.5f);
@@ -71,6 +71,8 @@ bool NotifNode::init(const Notif* notif, bool withBtns) {
         m_countdown->setScale(0.75f);
         m_countdown->setAnchorPoint({ 0.5f, 0.5f });
         m_countdown->setZOrder(1);
+
+        m_countdown->updateProgress(100.0f);
 
         addChildAtPosition(m_countdown, Anchor::Bottom, { 0.0f, 12.5f });
 

@@ -54,7 +54,7 @@ namespace cw {
 class $modify(NotifPlayLayer, PlayLayer) {
     static void onModify(auto& self) {
         if (Loader::get()->isModInstalled("cubicstudios.horriblemenu")) {
-            utils::StringMap<std::shared_ptr<Hook>> const& hooks = self.m_hooks;  // intellisense my beloved
+            StringMap<std::shared_ptr<Hook>> const& hooks = self.m_hooks;  // intellisense my beloved
             auto enable = true;
             hm::api::OptionManagerV2::isEnabled(HORRIBLE_MENU_OPT_ID);
 

@@ -33,4 +33,4 @@ You can disable the chaotic notifications during gameplay if you have [Horrible 
 
 ---
 
-![🗨️](frame:gj_discordIcon_001.png?scale=0.375) **If you need help, join my [support Discord server](https://www.dsc.gg/cheeseworks) and ask! :)**
+![🗨️](frame:gj_discordIcon_001.png?scale=0.375) **If you need help, join my [support Discord server](https://cwrk.cc/discord) and ask! :)**
