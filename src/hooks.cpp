@@ -1,4 +1,4 @@
-#include <Util.h>
+#include <cw.h>
 
 #include <ranges>
 
@@ -6,7 +6,7 @@
 
 #include <rhatt/base/Singleton.hpp>
 
-// #include <horrible/OptionalAPI.hpp>
+#include <horrible/OptionalAPI.hpp>
 
 #include <Geode/Geode.hpp>
 
@@ -14,7 +14,6 @@
 
 using namespace geode::prelude;
 using namespace cw::notifs;
-// using namespace horrible;
 
 static std::vector<std::weak_ptr<Hook>> NOTIF_HOOKS;  // Array of registered notifications hooks
 static bool HORRIBLE_OPT_ENABLED = true;              // cuz geode event apis are acting gay...
@@ -56,7 +55,8 @@ class $modify(NotifPlayLayer, PlayLayer) {
     static void onModify(auto& self) {
         if (Loader::get()->isModInstalled("cubicstudios.horriblemenu")) {
             utils::StringMap<std::shared_ptr<Hook>> const& hooks = self.m_hooks;  // intellisense my beloved
-            auto enable = true;                                                   // OptionManagerV2::isEnabled(HORRIBLE_MENU_OPT_ID).unwrapOr(true);
+            auto enable = true;
+            hm::api::OptionManagerV2::isEnabled(HORRIBLE_MENU_OPT_ID);
 
             for (auto const& hook : hooks | std::views::values) {
                 hook->setAutoEnable(enable);
@@ -199,30 +199,30 @@ $on_game(Loaded) {
 
     cw::toggleGlobalNotifs(Mod::get()->getSettingValue<bool>("always-on"));
 
-    // if (Loader::get()->isModLoaded("cubicstudios.horriblemenu")) {
-    //     auto const opt = OptionV2{
-    //         NH_HORRIBLE_MENU_OPT_ID,
-    //         "Spam Notifications",
-    //         "Enable the annoying notification spam during gameplay.",
-    //         "Notification Hell",
-    //         SillyTier::High,
-    //         true,
-    //     };
+    if (Loader::get()->isModLoaded("cubicstudios.horriblemenu")) {
+        auto const opt = hm::api::OptionV2{
+            NH_HORRIBLE_MENU_OPT_ID,
+            "Spam Notifications",
+            "Enable the annoying notification spam during gameplay.",
+            "Notification Hell",
+            hm::api::SillyTier::High,
+            true,
+        };
 
-    //     horrible::listenForHorribleOptionChanges(
-    //         HORRIBLE_MENU_OPT_ID,
-    //         [](HorribleOptionSave data) {
-    //             HORRIBLE_OPT_ENABLED = data.enabled;
+        hm::api::listenForHorribleOptionChanges(
+            HORRIBLE_MENU_OPT_ID,
+            [](hm::api::OptionSave data) {
+                HORRIBLE_OPT_ENABLED = data.enabled;
 
-    //             for (auto const& hook : NOTIF_HOOKS) {
-    //                 if (auto h = hook.lock()) (void)h->toggle(data.enabled);
-    //             };
+                for (auto const& hook : NOTIF_HOOKS) {
+                    if (auto h = hook.lock()) (void)h->toggle(data.enabled);
+                };
 
-    //             if (auto pl = PlayLayer::get()) modify_cast<NotifPlayLayer*>(pl)->toggleAll(data.enabled);
-    //             cw::toggleGlobalNotifs(data.enabled && Mod::get()->getSettingValue<bool>("always-on"));
-    //         }
-    //     );
+                if (auto pl = PlayLayer::get()) modify_cast<NotifPlayLayer*>(pl)->toggleAll(data.enabled);
+                cw::toggleGlobalNotifs(data.enabled && Mod::get()->getSettingValue<bool>("always-on"));
+            }
+        );
 
-    //     OptionManagerV2::registerOption(opt);
-    // };
+        (void)hm::api::OptionManagerV2::registerOption(opt);
+    };
 }

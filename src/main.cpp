@@ -1,4 +1,4 @@
-#include <Util.h>
+#include <cw.h>
 
 #include <Geode/Geode.hpp>
 
@@ -314,7 +314,7 @@ $on_mod(Loaded) {
                     {
                         { .text = "re-submit", .isOk = false },
                         { .text = "i shall depart", .isOk = true },
-                        { .text = "i must make an apology video...", .isOk = false },
+                        { .text = "i must apologize...", .isOk = false },
                         { .text = "pls?", .isOk = false },
                         { .text = "vibecode it again", .isOk = false },
                     }

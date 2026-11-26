@@ -1,5 +1,5 @@
 {
-    "geode": "6.0.0-alpha.1",
+    "geode": "6.0.0",
     "gd": {
         "win": "2.2091",
         "android": "2.2091",
@@ -25,7 +25,7 @@
     ],
     "dependencies": {
         "cubicstudios.horriblemenu": {
-            "version": ">=1.1.0",
+            "version": ">=1.4.0",
             "required": false
         }
     },

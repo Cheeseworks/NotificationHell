@@ -1,19 +1,14 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.29)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR IOS)
-    set(CMAKE_OSX_ARCHITECTURES "arm64")
-else()
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-project(AnnoyingNotifications VERSION 1.1.1)
+project(AnnoyingNotifications VERSION 1.1.2)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/cubicstudios.horriblemenu/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/geode-deps/cubicstudios.horriblemenu)
 target_include_directories(${PROJECT_NAME} PRIVATE src include)
 
 if(NOT DEFINED ENV{GEODE_SDK})
