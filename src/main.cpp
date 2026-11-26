@@ -282,7 +282,7 @@ $on_mod(Loaded) {
                     {
                         { .text = "no wait pls", .isOk = false },
                         { .text = "i will delete it!", .isOk = true },
-                        { .text = "i must make an apology video...", .isOk = false },
+                        { .text = "i must make an apology!", .isOk = false },
                         { .text = "hide from channel", .isOk = true },
                         { .text = "ignore", .isOk = true },
                     }
